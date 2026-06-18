@@ -19,6 +19,7 @@ interface AppState {
   selectedNodeId: string | null;
   selectedConnectionId: string | null;
   connectingFromNodeId: string | null;
+  pendingConnectSource: boolean;       // user tapped [Connect] in toolbar — next node tap becomes source
   editingNodeId: string | null;
   editingConnectionId: string | null;
   isAddingNode: NodeType | null;
@@ -44,6 +45,7 @@ interface AppState {
   startConnecting: (nodeId: string) => void;
   completeConnecting: (targetNodeId: string) => void;
   cancelConnecting: () => void;
+  setPendingConnectSource: (val: boolean) => void;
   openNodeEditor: (id: string) => void;
   openConnectionEditor: (id: string) => void;
   closeEditor: () => void;
@@ -86,6 +88,7 @@ export const useStore = create<AppState>((set, get) => ({
   selectedNodeId: null,
   selectedConnectionId: null,
   connectingFromNodeId: null,
+  pendingConnectSource: false,
   editingNodeId: null,
   editingConnectionId: null,
   isAddingNode: null,
@@ -194,6 +197,10 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   cancelConnecting: () => set({ connectingFromNodeId: null }),
+  setPendingConnectSource: (val) => set({
+    pendingConnectSource: val,
+    isAddingNode: val ? null : get().isAddingNode, // cancel add mode if starting connect
+  }),
   openNodeEditor: (id) => set({ editingNodeId: id, editingConnectionId: null }),
   openConnectionEditor: (id) => set({ editingConnectionId: id, editingNodeId: null }),
   closeEditor: () => set({ editingNodeId: null, editingConnectionId: null }),

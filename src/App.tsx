@@ -17,6 +17,10 @@ export default function App() {
   const toggleHelp = useStore(s => s.toggleHelp);
   const isAddingNode = useStore(s => s.isAddingNode);
   const setAddingNode = useStore(s => s.setAddingNode);
+  const setPendingConnectSource = useStore(s => s.setPendingConnectSource);
+  const cancelConnecting = useStore(s => s.cancelConnecting);
+  const pendingConnectSource = useStore(s => s.pendingConnectSource);
+  const connectingFromNodeId = useStore(s => s.connectingFromNodeId);
   const selectedNodeId = useStore(s => s.selectedNodeId);
   const selectedConnectionId = useStore(s => s.selectedConnectionId);
   const metadata = useStore(s => s.metadata);
@@ -61,6 +65,8 @@ export default function App() {
         if (helpOpen) { toggleHelp(); return; }
         if (editingNodeId || editingConnectionId) { closeEditor(); return; }
         if (isAddingNode) { setAddingNode(null); return; }
+        if (pendingConnectSource) { setPendingConnectSource(false); return; }
+        if (connectingFromNodeId) { cancelConnecting(); return; }
       }
       if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
         e.preventDefault();

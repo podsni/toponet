@@ -87,18 +87,21 @@ export const MobileStatusBar = () => {
   const connections = useStore(s => s.connections);
   const isAddingNode = useStore(s => s.isAddingNode);
   const connectingFromNodeId = useStore(s => s.connectingFromNodeId);
+  const pendingConnectSource = useStore(s => s.pendingConnectSource);
 
   const pppoeCount = connections.filter(c => c.type === 'pppoe').length;
 
   let tip: string;
   if (isAddingNode) {
     tip = 'Tap canvas untuk tempatkan device';
+  } else if (pendingConnectSource) {
+    tip = 'Tap node sumber';
   } else if (connectingFromNodeId) {
-    tip = 'Tap node target untuk hubungkan';
+    tip = 'Tap node target';
   } else if (nodes.length === 0) {
-    tip = 'Tap + untuk tambah device pertama';
+    tip = 'Tap + untuk tambah device';
   } else {
-    tip = 'Tap node untuk edit · tahan untuk connect';
+    tip = 'Tap node · drag untuk pindah';
   }
 
   return (
@@ -116,8 +119,26 @@ export const MobileStatusBar = () => {
 // ─── Connect-mode banner (mobile) ───────────────────────────────────────
 export const ConnectBanner = () => {
   const connectingFromNodeId = useStore(s => s.connectingFromNodeId);
+  const pendingConnectSource = useStore(s => s.pendingConnectSource);
   const nodes = useStore(s => s.nodes);
   const cancelConnecting = useStore(s => s.cancelConnecting);
+  const setPendingConnectSource = useStore(s => s.setPendingConnectSource);
+
+  if (pendingConnectSource) {
+    return (
+      <div className="connect-banner">
+        <LinkIcon size={14} />
+        <span>Tap node untuk mulai connect</span>
+        <button
+          className="btn btn-sm"
+          style={{ background: 'var(--bg)', color: 'var(--accent)', marginLeft: 8 }}
+          onClick={() => setPendingConnectSource(false)}
+        >
+          Batal
+        </button>
+      </div>
+    );
+  }
 
   if (!connectingFromNodeId) return null;
   const source = nodes.find(n => n.id === connectingFromNodeId);

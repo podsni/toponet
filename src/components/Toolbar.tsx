@@ -1,7 +1,7 @@
 import { useStore } from '../store';
 import { NODE_TYPE_META, CONNECTION_TYPE_META } from '../types';
 import type { NodeType } from '../types';
-import { NodeIcon, ConnectionIcon, ResetIcon, ZoomInIcon, ZoomOutIcon, HelpIcon } from '../lib/icons';
+import { NodeIcon, ConnectionIcon, LinkIcon, ResetIcon, ZoomInIcon, ZoomOutIcon, HelpIcon } from '../lib/icons';
 
 const NODE_GROUPS: { label: string; types: NodeType[] }[] = [
   { label: 'WAN',      types: ['cloud', 'modem', 'firewall'] },
@@ -13,6 +13,8 @@ const NODE_GROUPS: { label: string; types: NodeType[] }[] = [
 export const Toolbar = () => {
   const isAddingNode = useStore(s => s.isAddingNode);
   const setAddingNode = useStore(s => s.setAddingNode);
+  const pendingConnectSource = useStore(s => s.pendingConnectSource);
+  const setPendingConnectSource = useStore(s => s.setPendingConnectSource);
   const selectNode = useStore(s => s.selectNode);
   const selectConnection = useStore(s => s.selectConnection);
   const resetViewport = useStore(s => s.resetViewport);
@@ -21,10 +23,21 @@ export const Toolbar = () => {
 
   const handleAddClick = (type: NodeType) => {
     if (isAddingNode === type) {
-      // Toggle off
       setAddingNode(null);
     } else {
       setAddingNode(type);
+      setPendingConnectSource(false);
+      selectNode(null);
+      selectConnection(null);
+    }
+  };
+
+  const handleConnectClick = () => {
+    if (pendingConnectSource) {
+      setPendingConnectSource(false);
+    } else {
+      setPendingConnectSource(true);
+      setAddingNode(null); // cancel add mode
       selectNode(null);
       selectConnection(null);
     }
@@ -54,6 +67,19 @@ export const Toolbar = () => {
           {gi < NODE_GROUPS.length - 1 && <div className="toolbar-divider" />}
         </div>
       ))}
+
+      <div className="toolbar-divider" />
+      <div className="toolbar-section-label">Connect</div>
+
+      <button
+        className={`tool-btn ${pendingConnectSource ? 'active-pending' : ''}`}
+        onClick={handleConnectClick}
+        title="Mode Connect — tap node sumber, lalu tap target"
+        aria-label="Mode Connect"
+      >
+        <LinkIcon size={20} color={pendingConnectSource ? 'currentColor' : 'var(--accent)'} />
+        <span>Connect</span>
+      </button>
 
       <div className="toolbar-divider" />
       <div className="toolbar-section-label">View</div>
