@@ -4,7 +4,7 @@ import { NodeIcon, ConnectionIcon, CloseIcon, TrashIcon, LinkIcon } from '../lib
 
 // ─── Empty panel ────────────────────────────────────────────────────────
 const EmptyPanel = ({ onLoadDemo }: { onLoadDemo: () => void }) => (
-  <div className="panel">
+  <div className="panel panel--empty">
     <div className="panel-header">
       <h2 className="panel-title">Properties</h2>
     </div>

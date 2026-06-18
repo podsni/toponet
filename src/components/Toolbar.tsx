@@ -91,7 +91,7 @@ export const ConnectionLegend = () => {
       flexWrap: 'wrap',
       gap: 6,
       flexShrink: 0,
-    }}>
+    }} className="connection-legend">
       {(Object.keys(CONNECTION_TYPE_META) as Array<keyof typeof CONNECTION_TYPE_META>).map(key => {
         const meta = CONNECTION_TYPE_META[key];
         return (

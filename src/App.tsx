@@ -4,6 +4,7 @@ import { Toolbar, ConnectionLegend } from './components/Toolbar';
 import { TopologyCanvas } from './components/TopologyCanvas';
 import { PropertiesPanel } from './components/PropertiesPanel';
 import { NodeEditor, ConnectionEditor, HelpModal } from './components/Editors';
+import { MobileFAB, MobileStatusBar, ConnectBanner, AddHint } from './components/MobileUI';
 import { exportJson, importJsonFile } from './lib/export';
 import { PlusIcon, DownloadIcon, UploadIcon, HelpIcon } from './lib/icons';
 
@@ -16,12 +17,27 @@ export default function App() {
   const toggleHelp = useStore(s => s.toggleHelp);
   const isAddingNode = useStore(s => s.isAddingNode);
   const setAddingNode = useStore(s => s.setAddingNode);
+  const selectedNodeId = useStore(s => s.selectedNodeId);
+  const selectedConnectionId = useStore(s => s.selectedConnectionId);
   const metadata = useStore(s => s.metadata);
   const nodes = useStore(s => s.nodes);
   const connections = useStore(s => s.connections);
   const importJson = useStore(s => s.importJson);
 
   const [toast, setToast] = useState<string | null>(null);
+
+  // Track mobile viewport for body class (so CSS can lift FAB above bottom sheet)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 900px)');
+    const update = () => {
+      const hasSelection = !!(selectedNodeId || selectedConnectionId);
+      document.body.classList.toggle('has-open-panel-mobile', mq.matches && hasSelection);
+    };
+    update();
+    mq.addEventListener('change', update);
+    // Also re-run when selection changes (handled by re-render below)
+    return () => mq.removeEventListener('change', update);
+  }, [selectedNodeId, selectedConnectionId]);
 
   // Initial load
   useEffect(() => {
@@ -138,6 +154,12 @@ export default function App() {
         </div>
         <PropertiesPanel />
       </div>
+
+      {/* Mobile-specific UI */}
+      <MobileFAB />
+      <MobileStatusBar />
+      <ConnectBanner />
+      <AddHint />
 
       {editingNodeId && <NodeEditor nodeId={editingNodeId} onClose={closeEditor} />}
       {editingConnectionId && <ConnectionEditor connId={editingConnectionId} onClose={closeEditor} />}

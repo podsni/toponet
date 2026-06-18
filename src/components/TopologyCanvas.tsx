@@ -51,7 +51,7 @@ const Connection = ({ conn, source, target, selected, onSelect, onOpen }: Connec
       <path d={path} stroke="transparent" strokeWidth={20} fill="none" />
       {/* Visible line */}
       <path
-        className={`connection-line ${selected ? 'selected' : ''}`}
+        className={`connection-line ${isPppoe ? 'is-pppoe' : ''} ${selected ? 'selected' : ''}`}
         d={path}
         stroke={meta.color}
         strokeWidth={selected ? meta.width + 1.5 : meta.width}
@@ -113,6 +113,8 @@ const NodeItem = ({
 }: NodeItemProps) => {
   const meta = NODE_TYPE_META[node.type];
   const ip = node.properties.ip;
+  const longPressTimer = useRef<number | null>(null);
+  const longPressFired = useRef(false);
 
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -130,12 +132,44 @@ const NodeItem = ({
     isConnectTarget && 'connect-target',
   ].filter(Boolean).join(' ');
 
+  // Start long-press timer to enter connection mode (mobile: no right-click)
+  const startLongPress = () => {
+    longPressFired.current = false;
+    longPressTimer.current = window.setTimeout(() => {
+      longPressFired.current = true;
+      onConnect(node.id);
+      // Haptic feedback if available
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        (navigator as any).vibrate?.(15);
+      }
+    }, 500);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current !== null) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
   return (
     <div
       className={className}
       style={style}
-      onPointerDown={(e) => onPointerDown(e, node)}
+      onPointerDown={(e) => {
+        startLongPress();
+        onPointerDown(e, node);
+      }}
+      onPointerUp={cancelLongPress}
+      onPointerCancel={cancelLongPress}
+      onPointerLeave={cancelLongPress}
       onClick={(e) => {
+        // If long press fired, suppress the click that follows
+        if (longPressFired.current) {
+          longPressFired.current = false;
+          e.stopPropagation();
+          return;
+        }
         e.stopPropagation();
         onSelect(node.id);
       }}
@@ -451,6 +485,19 @@ export const TopologyCanvas = () => {
 
       {nodes.length === 0 && (
         <div className="canvas-empty">
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%',
+            background: 'var(--bg-soft)', border: '1.5px dashed var(--border-strong)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--text-muted)', marginBottom: 8,
+          }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="8" cy="8" r="3" />
+              <circle cx="16" cy="8" r="3" />
+              <circle cx="12" cy="18" r="3" />
+              <path d="M8 8 L16 8 M8 8 L12 18 M16 8 L12 18" opacity="0.5" />
+            </svg>
+          </div>
           <h3>Mulai topologi jaringanmu</h3>
           <p>
             Pilih device di toolbar kiri, atau klik tombol di bawah untuk memuat contoh jaringan dengan PPPoE.
